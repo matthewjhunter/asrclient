@@ -1,0 +1,39 @@
+version: '3'
+
+env:
+  CGO_ENABLED: '0'
+
+tasks:
+  default:
+    desc: Show available tasks.
+    cmds:
+      - task --list
+
+  test:
+    desc: Run unit tests.
+    cmds:
+      - go test ./...
+
+  test:race:
+    desc: Run tests with the race detector (requires CGo).
+    env:
+      CGO_ENABLED: '1'
+    cmds:
+      - go test -race ./...
+
+  vet:
+    desc: Run go vet on all packages.
+    cmds:
+      - go vet ./...
+
+  tidy:
+    desc: Run go mod tidy.
+    cmds:
+      - go mod tidy
+
+  check:
+    desc: Run vet, tests, and race-tests in one shot.
+    cmds:
+      - task: vet
+      - task: test
+      - task: test:race
