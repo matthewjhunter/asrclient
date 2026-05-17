@@ -204,7 +204,7 @@ func TestClient_TranscribeContextCancel(t *testing.T) {
 	}
 }
 
-func TestClient_HealthyRoundTrip(t *testing.T) {
+func TestClient_PingRoundTrip(t *testing.T) {
 	c, server := pairedClient(t)
 	br := bufio.NewReader(server)
 
@@ -222,8 +222,8 @@ func TestClient_HealthyRoundTrip(t *testing.T) {
 		}
 	}()
 
-	if err := c.Healthy(context.Background()); err != nil {
-		t.Fatalf("Healthy: %v", err)
+	if err := c.Ping(context.Background()); err != nil {
+		t.Fatalf("Ping: %v", err)
 	}
 	wg.Wait()
 }

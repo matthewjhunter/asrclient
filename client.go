@@ -9,7 +9,7 @@ import (
 //
 // Implementations are not required to be safe for concurrent calls
 // to Transcribe — callers serializing utterances per session is the
-// expected pattern. Healthy and Close MAY be called concurrently with
+// expected pattern. Ping and Close MAY be called concurrently with
 // Transcribe.
 type Backend interface {
 	// Transcribe consumes one utterance worth of PCM audio in the
@@ -19,10 +19,10 @@ type Backend interface {
 	// (HTTP multipart) — that detail is hidden from the caller.
 	Transcribe(ctx context.Context, audio []byte, opts Options) (Transcript, error)
 
-	// Healthy probes the backend. A nil return means ready; a
-	// non-nil return means the backend is currently unable to
-	// service requests.
-	Healthy(ctx context.Context) error
+	// Ping probes the backend. A nil return means ready; a non-nil
+	// return means the backend is currently unable to service
+	// requests.
+	Ping(ctx context.Context) error
 
 	// Close releases any persistent resources (sockets, HTTP
 	// keep-alive pools, in-flight goroutines).
@@ -40,7 +40,7 @@ type Options struct {
 
 	// Temperature is the decoder sampling temperature; 0 means
 	// "let the backend pick its default" (typically deterministic).
-	Temperature float32
+	Temperature float64
 }
 
 // Transcript is a successful transcription result.
@@ -53,9 +53,10 @@ type Transcript struct {
 	// empty if the backend did not report one.
 	Language string
 
-	// Duration is the wall-clock time the backend spent decoding,
-	// when the backend reports it. Zero otherwise.
-	Duration time.Duration
+	// DecodeDuration is the wall-clock time the backend spent
+	// decoding, when the backend reports it. Zero otherwise. This is
+	// NOT the duration of the audio clip.
+	DecodeDuration time.Duration
 
 	// Segments is the optional time-aligned segmentation. Nil if
 	// the backend does not return per-segment timestamps.

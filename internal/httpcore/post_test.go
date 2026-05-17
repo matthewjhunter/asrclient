@@ -124,8 +124,8 @@ func TestPostTranscription_RoundTrip(t *testing.T) {
 	if tr.Language != "en" {
 		t.Errorf("Language: got %q", tr.Language)
 	}
-	if tr.Duration != 1250*time.Millisecond {
-		t.Errorf("Duration: got %v want 1.25s", tr.Duration)
+	if tr.DecodeDuration != 1250*time.Millisecond {
+		t.Errorf("DecodeDuration: got %v want 1.25s", tr.DecodeDuration)
 	}
 }
 
@@ -205,7 +205,7 @@ func TestPostTranscription_ContextCancel(t *testing.T) {
 	}
 }
 
-func TestHealthyHEAD(t *testing.T) {
+func TestPingHEAD(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodHead {
 			t.Errorf("Method: got %q want HEAD", r.Method)
@@ -214,14 +214,14 @@ func TestHealthyHEAD(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	if err := HealthyHEAD(context.Background(), srv.Client(), srv.URL); err != nil {
-		t.Errorf("HealthyHEAD: %v", err)
+	if err := PingHEAD(context.Background(), srv.Client(), srv.URL); err != nil {
+		t.Errorf("PingHEAD: %v", err)
 	}
 }
 
-func TestHealthyHEAD_FailsOnNetworkError(t *testing.T) {
+func TestPingHEAD_FailsOnNetworkError(t *testing.T) {
 	// Pick a port that should fail fast.
-	if err := HealthyHEAD(context.Background(), &http.Client{Timeout: 200 * time.Millisecond}, "http://127.0.0.1:1/"); err == nil {
+	if err := PingHEAD(context.Background(), &http.Client{Timeout: 200 * time.Millisecond}, "http://127.0.0.1:1/"); err == nil {
 		t.Fatal("expected dial failure")
 	}
 }

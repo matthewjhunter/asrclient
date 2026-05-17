@@ -72,16 +72,17 @@ func PostTranscription(ctx context.Context, hc *http.Client, req Request) (asrcl
 		return asrclient.Transcript{}, fmt.Errorf("asrclient/httpcore: decode response: %w", err)
 	}
 	return asrclient.Transcript{
-		Text:     ar.Text,
-		Language: ar.Language,
-		Duration: time.Duration(ar.Duration * float64(time.Second)),
+		Text:           ar.Text,
+		Language:       ar.Language,
+		DecodeDuration: time.Duration(ar.Duration * float64(time.Second)),
 	}, nil
 }
 
-// HealthyHEAD issues a HEAD to endpoint. Any response (including non-2xx)
-// counts as healthy: the goal is to confirm we can talk to the server,
-// not to assert it is willing to serve a particular request.
-func HealthyHEAD(ctx context.Context, hc *http.Client, endpoint string) error {
+// PingHEAD issues a HEAD to endpoint. Any response (including non-2xx)
+// counts as a successful ping: the goal is to confirm we can talk to
+// the server, not to assert it is willing to serve a particular
+// request.
+func PingHEAD(ctx context.Context, hc *http.Client, endpoint string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, endpoint, nil)
 	if err != nil {
 		return fmt.Errorf("asrclient/httpcore: build HEAD: %w", err)

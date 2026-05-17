@@ -26,7 +26,7 @@ c := wyoming.NewClient("localhost:10300")
 defer c.Close()
 
 tr, err := c.Transcribe(ctx, pcm, asrclient.Options{Language: "en"})
-// tr.Text, tr.Language, tr.Duration, tr.Segments
+// tr.Text, tr.Language, tr.DecodeDuration, tr.Segments
 ```
 
 ## Design

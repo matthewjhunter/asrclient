@@ -35,7 +35,7 @@ func WithDialTimeout(d time.Duration) Option {
 }
 
 // NewClient constructs a Client pointed at addr (host:port). The
-// connection is not opened until the first Transcribe or Healthy call.
+// connection is not opened until the first Transcribe or Ping call.
 func NewClient(addr string, opts ...Option) *Client {
 	c := &Client{addr: addr, dialTimeout: 5 * time.Second}
 	for _, opt := range opts {
@@ -102,9 +102,9 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, _ asrclient.Optio
 	}
 }
 
-// Healthy implements asrclient.Backend by sending describe and waiting
+// Ping implements asrclient.Backend by sending describe and waiting
 // for the corresponding info response.
-func (c *Client) Healthy(ctx context.Context) error {
+func (c *Client) Ping(ctx context.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

@@ -77,9 +77,9 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Healthy implements asrclient.Backend.
-func (c *Client) Healthy(ctx context.Context) error {
-	return httpcore.HealthyHEAD(ctx, c.hc, c.endpoint)
+// Ping implements asrclient.Backend.
+func (c *Client) Ping(ctx context.Context) error {
+	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
 
 // Close releases idle connections.

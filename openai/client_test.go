@@ -49,7 +49,7 @@ func TestClient_TranscribeDelegatesToHTTP(t *testing.T) {
 	}
 }
 
-func TestClient_HealthyDelegatesToHEAD(t *testing.T) {
+func TestClient_PingDelegatesToHEAD(t *testing.T) {
 	var sawMethod string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sawMethod = r.Method
@@ -60,8 +60,8 @@ func TestClient_HealthyDelegatesToHEAD(t *testing.T) {
 	c := NewClient("", WithEndpoint(srv.URL))
 	defer c.Close()
 
-	if err := c.Healthy(context.Background()); err != nil {
-		t.Fatalf("Healthy: %v", err)
+	if err := c.Ping(context.Background()); err != nil {
+		t.Fatalf("Ping: %v", err)
 	}
 	if sawMethod != http.MethodHead {
 		t.Errorf("method: got %q want HEAD", sawMethod)
