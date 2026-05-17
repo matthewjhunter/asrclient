@@ -31,7 +31,6 @@ project that needs the same protocol set.
 - **Stable surface.** The `Backend` interface and `Options` /
   `Transcript` types are the public API. Don't grow them speculatively.
   Add fields when a real consumer needs them.
-- **No license file yet.** Deferred until publish.
 
 ## Audio frame format (locked)
 
