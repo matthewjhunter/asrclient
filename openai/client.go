@@ -14,6 +14,9 @@ import (
 	"github.com/matthewjhunter/asrclient/internal/httpcore"
 )
 
+// Defaults for the public OpenAI /v1/audio/transcriptions endpoint.
+// Override via WithEndpoint, WithModel, and WithTimeout (or
+// WithHTTPClient for full control).
 const (
 	DefaultEndpoint = "https://api.openai.com/v1/audio/transcriptions"
 	DefaultModel    = "whisper-1"
@@ -54,7 +57,7 @@ func WithHTTPClient(hc *http.Client) Option {
 func WithTLSInsecureSkipVerify() Option {
 	return func(c *Client) {
 		c.hc.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // opt-in escape hatch; see SECURITY.md
 		}
 	}
 }

@@ -21,9 +21,9 @@ func Dial(addr string, timeout time.Duration) (*Conn, error) {
 	var c net.Conn
 	var err error
 	if timeout > 0 {
-		c, err = net.DialTimeout("tcp", addr, timeout)
+		c, err = net.DialTimeout("tcp", addr, timeout) //nolint:gosec // addr is library-consumer configuration, not external input
 	} else {
-		c, err = net.Dial("tcp", addr)
+		c, err = net.Dial("tcp", addr) //nolint:gosec // see above
 	}
 	if err != nil {
 		return nil, fmt.Errorf("wyoming: dial %s: %w", addr, err)

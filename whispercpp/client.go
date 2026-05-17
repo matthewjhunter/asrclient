@@ -13,10 +13,13 @@ import (
 	"github.com/matthewjhunter/asrclient/internal/httpcore"
 )
 
+// Defaults for a loopback whisper-server. Override via WithEndpoint
+// (e.g. once the supervised server's port is known) or WithTimeout.
 const (
 	DefaultEndpoint = "http://127.0.0.1:8080/v1/audio/transcriptions"
-	// whisper-server ignores the model field but the protocol still
-	// requires it; "whisper-1" is the conventional placeholder.
+	// DefaultModel is the placeholder model name. whisper-server
+	// ignores the model field, but the OpenAI-compatible protocol
+	// still requires it; "whisper-1" is the conventional value.
 	DefaultModel   = "whisper-1"
 	DefaultTimeout = 30 * time.Second
 )

@@ -17,7 +17,7 @@ const MaxHeaderBytes = 64 * 1024
 
 // ErrHeaderTooLong is returned by ReadEvent when the header line exceeds
 // MaxHeaderBytes before a newline is seen.
-var ErrHeaderTooLong = errors.New("wyoming: header exceeds max length")
+var ErrHeaderTooLong = errors.New("wyoming: header exceeds maxLen length")
 
 // WriteEvent serializes ev to w in the Wyoming wire format:
 //
@@ -111,20 +111,20 @@ func ReadEvent(br *bufio.Reader) (Event, error) {
 	return ev, nil
 }
 
-func readLine(br *bufio.Reader, max int) ([]byte, error) {
+func readLine(br *bufio.Reader, maxLen int) ([]byte, error) {
 	var line []byte
 	for {
 		chunk, err := br.ReadSlice('\n')
 		if err == nil {
 			line = append(line, chunk...)
-			if len(line) > max+1 {
+			if len(line) > maxLen+1 {
 				return nil, ErrHeaderTooLong
 			}
 			return line[:len(line)-1], nil
 		}
 		if errors.Is(err, bufio.ErrBufferFull) {
 			line = append(line, chunk...)
-			if len(line) > max {
+			if len(line) > maxLen {
 				return nil, ErrHeaderTooLong
 			}
 			continue

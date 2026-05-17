@@ -17,7 +17,9 @@ func PCMToWav(pcm []byte) []byte {
 	)
 	byteRate := uint32(sampleRate * numChannels * bitsPerSample / 8)
 	blockAlign := uint16(numChannels * bitsPerSample / 8)
-	dataSize := uint32(len(pcm))
+	// WAV's data-size field is 32-bit; 4 GiB of int16 PCM at 16 kHz mono
+	// is ~34 hours per call, well outside any realistic Transcribe use.
+	dataSize := uint32(len(pcm)) //nolint:gosec // see comment above
 
 	buf := make([]byte, 44+len(pcm))
 	copy(buf[0:4], "RIFF")
