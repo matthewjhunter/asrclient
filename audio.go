@@ -1,10 +1,10 @@
 // Package asrclient is a unified Go API for speech-to-text transcription
 // over Wyoming, the OpenAI HTTP protocol, and a local whisper.cpp HTTP
-// server. The Backend interface is the public surface; backend
+// server. The Transcriber interface is the public surface; backend
 // implementations live in subpackages.
 package asrclient
 
-// Locked PCM frame format. Every Backend implementation in this module
+// Locked PCM frame format. Every Transcriber implementation in this module
 // assumes audio supplied to Transcribe is encoded in this exact shape;
 // callers should resample upstream.
 //

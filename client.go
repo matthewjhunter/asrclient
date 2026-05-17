@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-// Backend transcribes a single utterance of PCM audio into text.
+// Transcriber transcribes a single utterance of PCM audio into text.
 //
 // Implementations are not required to be safe for concurrent calls
 // to Transcribe — callers serializing utterances per session is the
 // expected pattern. Ping and Close MAY be called concurrently with
 // Transcribe.
-type Backend interface {
+type Transcriber interface {
 	// Transcribe consumes one utterance worth of PCM audio in the
 	// module's locked frame format (see audio.go) and returns the
 	// transcript. Implementations may stream the input internally

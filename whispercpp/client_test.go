@@ -33,6 +33,6 @@ func TestClient_TranscribeOmitsAuth(t *testing.T) {
 	}
 }
 
-func TestClient_BackendInterface(t *testing.T) {
-	var _ asrclient.Backend = NewClient()
+func TestClient_TranscriberInterface(t *testing.T) {
+	var _ asrclient.Transcriber = NewClient()
 }

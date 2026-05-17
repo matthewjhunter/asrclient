@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 A pure-Go module for speech-to-text transcription, with one unified
-`Backend` interface and three implementations:
+`Transcriber` interface and three implementations:
 
 - **Wyoming** — TCP wire protocol used by the Home Assistant voice
   ecosystem (e.g. `wyoming-faster-whisper`). JSON-header + binary-payload
@@ -38,7 +38,7 @@ tr, err := c.Transcribe(ctx, pcm, asrclient.Options{Language: "en"})
   whisper.cpp client expects a server already running and reachable.
   Keeping protocol and lifecycle separate is the reason the module
   exists as its own thing.
-- **Narrow surface.** `Backend`, `Options`, `Transcript`, `Segment`
+- **Narrow surface.** `Transcriber`, `Options`, `Transcript`, `Segment`
   are the public types; backend constructors are `NewClient(...)`
   with optional `WithX(...)` options. No speculative fields — they're
   added when a real consumer needs them.
@@ -60,7 +60,7 @@ Specifically deferred for a later v0.x:
   transcripts out; OpenAI's incremental story is the separate
   Realtime API (WebSocket); whisper-server doesn't stream. When a
   consumer needs live captioning or partial results, an opt-in
-  `StreamingBackend` interface will likely land — only the Wyoming
+  `StreamingTranscriber` interface will likely land — only the Wyoming
   backend will implement it; callers will feature-detect via type
   assertion.
 
@@ -86,7 +86,7 @@ that already produce frames in this format pay no resampling cost.
 go get github.com/matthewjhunter/asrclient
 ```
 
-## Backends
+## Transcribers
 
 ### Wyoming
 
@@ -130,11 +130,11 @@ conventional placeholder.
 
 ```
 asrclient/
-├── client.go              # Backend, Options, Transcript, Segment
+├── client.go              # Transcriber, Options, Transcript, Segment
 ├── audio.go               # frame-format constants
-├── wyoming/               # Wyoming wire protocol + Backend impl
-├── openai/                # OpenAI HTTPS Backend
-├── whispercpp/            # OpenAI-protocol Backend, loopback defaults
+├── wyoming/               # Wyoming wire protocol + Transcriber impl
+├── openai/                # OpenAI HTTPS Transcriber
+├── whispercpp/            # OpenAI-protocol Transcriber, loopback defaults
 └── internal/
     └── httpcore/          # shared multipart/form-data POST core
 ```

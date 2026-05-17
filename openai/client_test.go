@@ -68,6 +68,6 @@ func TestClient_PingDelegatesToHEAD(t *testing.T) {
 	}
 }
 
-func TestClient_BackendInterface(t *testing.T) {
-	var _ asrclient.Backend = NewClient("k")
+func TestClient_TranscriberInterface(t *testing.T) {
+	var _ asrclient.Transcriber = NewClient("k")
 }

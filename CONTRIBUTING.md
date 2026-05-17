@@ -25,7 +25,7 @@ or newer.
   `/health` gating, restart-on-crash — those belong in the consumer,
   not here. Keeping protocol and lifecycle separate is the reason this
   module exists.
-- **Narrow public surface.** Don't grow `Backend`, `Options`,
+- **Narrow public surface.** Don't grow `Transcriber`, `Options`,
   `Transcript`, or `Segment` speculatively. Add fields when a real
   consumer needs them.
 
@@ -44,11 +44,11 @@ would have to do to support it.
 ## Adding a backend
 
 1. Create a sub-package (e.g. `mything/`).
-2. Implement the `asrclient.Backend` interface (`Transcribe`,
+2. Implement the `asrclient.Transcriber` interface (`Transcribe`,
    `Healthy`, `Close`).
 3. Add a constructor `NewClient(...) *Client` plus `Option` /
    `WithX(...)` helpers for configuration.
-4. Add a compile-time assertion: `var _ asrclient.Backend = (*Client)(nil)`.
+4. Add a compile-time assertion: `var _ asrclient.Transcriber = (*Client)(nil)`.
 5. Write tests against an in-process `httptest.Server` (or `net.Pipe`
    for protocol-level work) — no live external services in CI.
 

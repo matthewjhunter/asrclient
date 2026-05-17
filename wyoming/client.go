@@ -11,7 +11,7 @@ import (
 	"github.com/matthewjhunter/asrclient"
 )
 
-// Client is a Wyoming-protocol implementation of asrclient.Backend.
+// Client is a Wyoming-protocol implementation of asrclient.Transcriber.
 //
 // One Client may be reused across many Transcribe calls. The TCP
 // connection is opened lazily on the first call and held open
@@ -44,7 +44,7 @@ func NewClient(addr string, opts ...Option) *Client {
 	return c
 }
 
-// Transcribe implements asrclient.Backend.
+// Transcribe implements asrclient.Transcriber.
 //
 // audio must be PCM in the module's locked format (16 kHz mono int16-LE,
 // see asrclient.FrameBytes). The implementation chunks it into
@@ -102,7 +102,7 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, _ asrclient.Optio
 	}
 }
 
-// Ping implements asrclient.Backend by sending describe and waiting
+// Ping implements asrclient.Transcriber by sending describe and waiting
 // for the corresponding info response.
 func (c *Client) Ping(ctx context.Context) error {
 	c.mu.Lock()
@@ -186,5 +186,5 @@ func (c *Client) bindCtxLocked(ctx context.Context, conn *Conn, fallback time.Du
 	}
 }
 
-// Compile-time check that *Client satisfies asrclient.Backend.
-var _ asrclient.Backend = (*Client)(nil)
+// Compile-time check that *Client satisfies asrclient.Transcriber.
+var _ asrclient.Transcriber = (*Client)(nil)

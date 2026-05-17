@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-`asrclient` is a pure-Go module exposing a unified `Backend` interface for
+`asrclient` is a pure-Go module exposing a unified `Transcriber` interface for
 streaming and one-shot speech-to-text transcription, with implementations
 for the three protocols dicta and similar consumers care about:
 
@@ -28,7 +28,7 @@ project that needs the same protocol set.
   `/health` gating — all of that lives in the consumer (e.g. dicta's
   `internal/whispersupervisor`). Keeping protocol and lifecycle
   separate is the reason this module exists as a separate thing.
-- **Stable surface.** The `Backend` interface and `Options` /
+- **Stable surface.** The `Transcriber` interface and `Options` /
   `Transcript` types are the public API. Don't grow them speculatively.
   Add fields when a real consumer needs them.
 
@@ -49,11 +49,11 @@ this shape pays no resampling cost.
 
 ```
 asrclient/
-├── client.go              # Backend, Options, Transcript, Segment
+├── client.go              # Transcriber, Options, Transcript, Segment
 ├── audio.go               # frame-format constants
-├── wyoming/               # Wyoming wire protocol + Backend impl
-├── openai/                # OpenAI HTTPS Backend
-├── whispercpp/            # OpenAI-protocol Backend, loopback defaults
+├── wyoming/               # Wyoming wire protocol + Transcriber impl
+├── openai/                # OpenAI HTTPS Transcriber
+├── whispercpp/            # OpenAI-protocol Transcriber, loopback defaults
 └── internal/
     └── httpcore/          # shared multipart/form-data POST core
 ```

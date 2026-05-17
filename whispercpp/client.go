@@ -1,4 +1,4 @@
-// Package whispercpp is an asrclient.Backend that talks to a
+// Package whispercpp is an asrclient.Transcriber that talks to a
 // whisper.cpp `whisper-server` over loopback HTTP. The server is
 // expected to be supervised by the consumer (port discovery, health
 // gating, restart-on-crash) — this package is just the protocol client.
@@ -24,7 +24,7 @@ const (
 	DefaultTimeout = 30 * time.Second
 )
 
-// Client is the whisper.cpp Backend implementation.
+// Client is the whisper.cpp Transcriber implementation.
 type Client struct {
 	endpoint string
 	model    string
@@ -66,7 +66,7 @@ func NewClient(opts ...Option) *Client {
 	return c
 }
 
-// Transcribe implements asrclient.Backend.
+// Transcribe implements asrclient.Transcriber.
 func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Options) (asrclient.Transcript, error) {
 	return httpcore.PostTranscription(ctx, c.hc, httpcore.Request{
 		Endpoint: c.endpoint,
@@ -77,7 +77,7 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Ping implements asrclient.Backend.
+// Ping implements asrclient.Transcriber.
 func (c *Client) Ping(ctx context.Context) error {
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
@@ -90,4 +90,4 @@ func (c *Client) Close() error {
 	return nil
 }
 
-var _ asrclient.Backend = (*Client)(nil)
+var _ asrclient.Transcriber = (*Client)(nil)

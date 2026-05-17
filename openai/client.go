@@ -1,4 +1,4 @@
-// Package openai is an asrclient.Backend that talks to the public
+// Package openai is an asrclient.Transcriber that talks to the public
 // OpenAI /v1/audio/transcriptions endpoint (or any drop-in
 // OpenAI-compatible service). TLS verification is on by default; the
 // API key is sent as Bearer auth.
@@ -23,7 +23,7 @@ const (
 	DefaultTimeout  = 30 * time.Second
 )
 
-// Client is the OpenAI Backend implementation.
+// Client is the OpenAI Transcriber implementation.
 type Client struct {
 	endpoint string
 	apiKey   string
@@ -77,7 +77,7 @@ func NewClient(apiKey string, opts ...Option) *Client {
 	return c
 }
 
-// Transcribe implements asrclient.Backend.
+// Transcribe implements asrclient.Transcriber.
 func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Options) (asrclient.Transcript, error) {
 	return httpcore.PostTranscription(ctx, c.hc, httpcore.Request{
 		Endpoint: c.endpoint,
@@ -89,7 +89,7 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Ping implements asrclient.Backend.
+// Ping implements asrclient.Transcriber.
 func (c *Client) Ping(ctx context.Context) error {
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
@@ -102,4 +102,4 @@ func (c *Client) Close() error {
 	return nil
 }
 
-var _ asrclient.Backend = (*Client)(nil)
+var _ asrclient.Transcriber = (*Client)(nil)

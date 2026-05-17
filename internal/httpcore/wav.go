@@ -1,6 +1,6 @@
 // Package httpcore implements the shared HTTP transport for the
 // OpenAI-compatible /v1/audio/transcriptions endpoint, used by both the
-// openai and whispercpp Backends.
+// openai and whispercpp Transcribers.
 package httpcore
 
 import "encoding/binary"

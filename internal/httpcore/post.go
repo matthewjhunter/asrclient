@@ -14,7 +14,7 @@ import (
 )
 
 // Request is the input to PostTranscription, capturing the per-call
-// fields plus the per-Backend fields the backend has already resolved.
+// fields plus the per-Transcriber fields the backend has already resolved.
 type Request struct {
 	Endpoint string
 	APIKey   string // Bearer token; "" omits the Authorization header.
@@ -25,7 +25,7 @@ type Request struct {
 }
 
 // apiResponse is the OpenAI-compatible JSON response shape. Only fields
-// the Backend currently surfaces are decoded; everything else is dropped.
+// the Transcriber currently surfaces are decoded; everything else is dropped.
 type apiResponse struct {
 	Text     string  `json:"text"`
 	Language string  `json:"language"`
