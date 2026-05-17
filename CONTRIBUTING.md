@@ -29,6 +29,18 @@ or newer.
   `Transcript`, or `Segment` speculatively. Add fields when a real
   consumer needs them.
 
+## API stability
+
+The v0.x series is **not API-stable** — see the README. Breaking
+renames and shape changes are expected as the interface settles.
+Bug-for-bug compatibility is not a goal in v0.x. Tests should cover
+behavior, not exact field names or method signatures of the public
+API more than necessary.
+
+When proposing API changes, include the rationale: which consumer
+needs it, why the current shape doesn't work, what other backends
+would have to do to support it.
+
 ## Adding a backend
 
 1. Create a sub-package (e.g. `mything/`).

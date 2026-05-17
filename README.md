@@ -38,10 +38,31 @@ tr, err := c.Transcribe(ctx, pcm, asrclient.Options{Language: "en"})
   whisper.cpp client expects a server already running and reachable.
   Keeping protocol and lifecycle separate is the reason the module
   exists as its own thing.
-- **Stable, narrow surface.** `Backend`, `Options`, `Transcript`,
-  `Segment` are the public types; backend constructors are
-  `NewClient(...)` with optional `WithX(...)` options. No speculative
-  fields — they're added when a real consumer needs them.
+- **Narrow surface.** `Backend`, `Options`, `Transcript`, `Segment`
+  are the public types; backend constructors are `NewClient(...)`
+  with optional `WithX(...)` options. No speculative fields — they're
+  added when a real consumer needs them.
+
+## API stability
+
+The v0.x series is **not API-stable.** asrclient and its primary
+consumer (dicta) are both early-stage; expect breaking renames or
+shape changes between v0.x minor versions as both projects shake
+out. Pin a specific version in your `go.mod`. The interface will
+settle and a v1.0 will follow once a few consumers have stress-tested
+it.
+
+Specifically deferred for a later v0.x:
+
+- **Streaming / interim transcripts.** The current `Transcribe`
+  call buffers a full utterance and returns one final `Transcript`.
+  Wyoming actually supports incremental audio in and interim
+  transcripts out; OpenAI's incremental story is the separate
+  Realtime API (WebSocket); whisper-server doesn't stream. When a
+  consumer needs live captioning or partial results, an opt-in
+  `StreamingBackend` interface will likely land — only the Wyoming
+  backend will implement it; callers will feature-detect via type
+  assertion.
 
 ## Audio frame format (locked)
 
