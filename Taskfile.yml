@@ -12,19 +12,45 @@ tasks:
   test:
     desc: Run unit tests.
     cmds:
-      - go test ./...
+      - go test -count=1 ./...
 
   test:race:
     desc: Run tests with the race detector (requires CGo).
     env:
       CGO_ENABLED: '1'
     cmds:
-      - go test -race ./...
+      - go test -race -count=1 ./...
 
   vet:
     desc: Run go vet on all packages.
     cmds:
       - go vet ./...
+
+  fmt:
+    desc: Check formatting with gofmt.
+    cmds:
+      - |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "Unformatted files:"
+          echo "$unformatted"
+          exit 1
+        fi
+
+  fmt:fix:
+    desc: Apply gofmt.
+    cmds:
+      - gofmt -w .
+
+  lint:
+    desc: Run golangci-lint.
+    cmds:
+      - golangci-lint run ./...
+
+  vuln:
+    desc: Run govulncheck.
+    cmds:
+      - govulncheck ./...
 
   tidy:
     desc: Run go mod tidy.
@@ -32,8 +58,11 @@ tasks:
       - go mod tidy
 
   check:
-    desc: Run vet, tests, and race-tests in one shot.
+    desc: Run all CI checks (vet, fmt, lint, test, test:race, vuln).
     cmds:
       - task: vet
+      - task: fmt
+      - task: lint
       - task: test
       - task: test:race
+      - task: vuln
