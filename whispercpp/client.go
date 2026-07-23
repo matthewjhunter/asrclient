@@ -26,9 +26,10 @@ const (
 
 // Client is the whisper.cpp Transcriber implementation.
 type Client struct {
-	endpoint string
-	model    string
-	hc       *http.Client
+	endpoint       string
+	healthEndpoint string
+	model          string
+	hc             *http.Client
 }
 
 // Option configures a Client.
@@ -36,6 +37,14 @@ type Option func(*Client)
 
 // WithEndpoint overrides the transcription URL.
 func WithEndpoint(s string) Option { return func(c *Client) { c.endpoint = s } }
+
+// WithHealthEndpoint points Ping at a URL it probes with GET instead of a
+// HEAD to the transcription endpoint. whisper-server and Lemonade do not
+// route HEAD on /v1/audio/transcriptions, so the default Ping makes them
+// log a 405 on every poll; set this to a routed path (Lemonade:
+// http://host:port/api/v1/health) to silence that noise. Empty keeps the
+// HEAD-on-transcription-endpoint behavior.
+func WithHealthEndpoint(s string) Option { return func(c *Client) { c.healthEndpoint = s } }
 
 // WithModel overrides the model name sent in the multipart payload.
 func WithModel(s string) Option { return func(c *Client) { c.model = s } }
@@ -77,8 +86,13 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Ping implements asrclient.Transcriber.
+// Ping implements asrclient.Transcriber. With a health endpoint
+// configured it probes that path with GET; otherwise it falls back to a
+// HEAD against the transcription endpoint.
 func (c *Client) Ping(ctx context.Context) error {
+	if c.healthEndpoint != "" {
+		return httpcore.PingGET(ctx, c.hc, c.healthEndpoint)
+	}
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
 

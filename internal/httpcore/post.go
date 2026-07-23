@@ -95,6 +95,27 @@ func PingHEAD(ctx context.Context, hc *http.Client, endpoint string) error {
 	return nil
 }
 
+// PingGET issues a GET to url and, like PingHEAD, treats any response as a
+// successful ping -- it confirms the server is reachable, not that it is
+// ready. Prefer it over PingHEAD when the caller can point it at a path the
+// server actually routes (e.g. a health endpoint): servers that do not
+// route HEAD on /v1/audio/transcriptions log a 405 on every poll, and a GET
+// to a routed path avoids spilling that noise into their logs.
+func PingGET(ctx context.Context, hc *http.Client, url string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("asrclient/httpcore: build GET: %w", err)
+	}
+	resp, err := hc.Do(req)
+	if err != nil {
+		return fmt.Errorf("asrclient/httpcore: GET: %w", err)
+	}
+	// Drain a bounded amount so the connection can be reused, then close.
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4*1024))
+	_ = resp.Body.Close()
+	return nil
+}
+
 func buildMultipart(req Request) (io.Reader, string, error) {
 	var buf bytes.Buffer
 	mw := multipart.NewWriter(&buf)
