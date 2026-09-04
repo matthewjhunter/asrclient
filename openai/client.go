@@ -54,11 +54,22 @@ func WithHTTPClient(hc *http.Client) Option {
 
 // WithTLSInsecureSkipVerify disables certificate verification. Local-LAN
 // testing only — see asrclient module security guidance.
+// It mutates the client's existing transport rather than replacing it,
+// so proxy handling, dial and handshake timeouts, and HTTP/2 survive.
+// Replacing the transport outright silently dropped all of those.
 func WithTLSInsecureSkipVerify() Option {
 	return func(c *Client) {
-		c.hc.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // opt-in escape hatch; see SECURITY.md
+		tr, ok := c.hc.Transport.(*http.Transport)
+		if !ok {
+			// A caller-supplied client whose transport we do not
+			// understand: give it one we do rather than reaching in.
+			tr = httpcore.NewTransport()
+			c.hc.Transport = tr
 		}
+		if tr.TLSClientConfig == nil {
+			tr.TLSClientConfig = &tls.Config{} //nolint:gosec // InsecureSkipVerify set below; opt-in escape hatch, see SECURITY.md
+		}
+		tr.TLSClientConfig.InsecureSkipVerify = true //nolint:gosec // opt-in escape hatch; see SECURITY.md
 	}
 }
 
@@ -69,7 +80,7 @@ func NewClient(apiKey string, opts ...Option) *Client {
 		endpoint: DefaultEndpoint,
 		apiKey:   apiKey,
 		model:    DefaultModel,
-		hc:       &http.Client{Timeout: DefaultTimeout},
+		hc:       httpcore.NewHTTPClient(DefaultTimeout),
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -94,7 +105,9 @@ func (c *Client) Ping(ctx context.Context) error {
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
 
-// Close releases idle connections.
+// Close releases the connections this client pooled. It is a no-op for
+// a caller-supplied http.Client whose transport is not an
+// *http.Transport -- that transport's lifecycle belongs to the caller.
 func (c *Client) Close() error {
 	if t, ok := c.hc.Transport.(*http.Transport); ok {
 		t.CloseIdleConnections()
