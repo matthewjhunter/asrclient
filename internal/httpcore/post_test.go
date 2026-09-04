@@ -226,40 +226,5 @@ func TestPingHEAD_FailsOnNetworkError(t *testing.T) {
 	}
 }
 
-func TestPingGET(t *testing.T) {
-	var sawMethod string
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sawMethod = r.Method
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
-	}))
-	defer srv.Close()
-
-	if err := PingGET(context.Background(), srv.Client(), srv.URL); err != nil {
-		t.Errorf("PingGET: %v", err)
-	}
-	if sawMethod != http.MethodGet {
-		t.Errorf("method: got %q want GET", sawMethod)
-	}
-}
-
-func TestPingGET_AnyStatusIsAlive(t *testing.T) {
-	// A non-2xx response still means the server is reachable.
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.NotFound(w, r)
-	}))
-	defer srv.Close()
-
-	if err := PingGET(context.Background(), srv.Client(), srv.URL); err != nil {
-		t.Errorf("PingGET on 404: got %v, want nil (server is reachable)", err)
-	}
-}
-
-func TestPingGET_FailsOnNetworkError(t *testing.T) {
-	if err := PingGET(context.Background(), &http.Client{Timeout: 200 * time.Millisecond}, "http://127.0.0.1:1/"); err == nil {
-		t.Fatal("expected dial failure")
-	}
-}
-
 // silence unused-import nags when only Transcript fields are exercised
 var _ = asrclient.Transcript{}

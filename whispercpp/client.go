@@ -26,10 +26,13 @@ const (
 
 // Client is the whisper.cpp Transcriber implementation.
 type Client struct {
-	endpoint       string
+	endpoint string
+	model    string
+	hc       *http.Client
+
+	// healthEndpoint is empty unless WithHealthEndpoint was used;
+	// empty means Ping falls back to a HEAD on endpoint.
 	healthEndpoint string
-	model          string
-	hc             *http.Client
 }
 
 // Option configures a Client.
@@ -37,14 +40,6 @@ type Option func(*Client)
 
 // WithEndpoint overrides the transcription URL.
 func WithEndpoint(s string) Option { return func(c *Client) { c.endpoint = s } }
-
-// WithHealthEndpoint points Ping at a URL it probes with GET instead of a
-// HEAD to the transcription endpoint. whisper-server and Lemonade do not
-// route HEAD on /v1/audio/transcriptions, so the default Ping makes them
-// log a 405 on every poll; set this to a routed path (Lemonade:
-// http://host:port/api/v1/health) to silence that noise. Empty keeps the
-// HEAD-on-transcription-endpoint behavior.
-func WithHealthEndpoint(s string) Option { return func(c *Client) { c.healthEndpoint = s } }
 
 // WithModel overrides the model name sent in the multipart payload.
 func WithModel(s string) Option { return func(c *Client) { c.model = s } }
@@ -58,6 +53,23 @@ func WithTimeout(d time.Duration) Option {
 func WithHTTPClient(hc *http.Client) Option {
 	return func(c *Client) { c.hc = hc }
 }
+
+// WithHealthEndpoint points Ping at a dedicated health endpoint instead
+// of probing the transcription path.
+//
+// Pass a path -- "/api/v1/health" for Lemonade Server, "/health" for
+// whisper-server -- and it is resolved against the transcription
+// endpoint's origin. Pass an absolute URL to probe a different host.
+//
+// This changes what a successful Ping means. Unset, Ping issues a HEAD
+// to the transcription endpoint and counts any reply as success,
+// because that only claims something is listening: many servers do not
+// route HEAD on that path and answer 405, which is still proof of life
+// (and which they typically log as an error on every probe). Set, Ping
+// issues a GET and requires 2xx, so it asserts the service says it is
+// ready -- and stops writing an error line into the server's log every
+// time it is called.
+func WithHealthEndpoint(s string) Option { return func(c *Client) { c.healthEndpoint = s } }
 
 // NewClient constructs a Client. The default points at
 // http://127.0.0.1:8080/v1/audio/transcriptions; consumers that
@@ -86,12 +98,17 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Ping implements asrclient.Transcriber. With a health endpoint
-// configured it probes that path with GET; otherwise it falls back to a
-// HEAD against the transcription endpoint.
+// Ping implements asrclient.Transcriber. It probes the configured
+// health endpoint when one is set (GET, 2xx required) and otherwise
+// falls back to a HEAD against the transcription endpoint. See
+// WithHealthEndpoint for why the two differ in strictness.
 func (c *Client) Ping(ctx context.Context) error {
 	if c.healthEndpoint != "" {
-		return httpcore.PingGET(ctx, c.hc, c.healthEndpoint)
+		healthURL, err := httpcore.ResolveHealthURL(c.endpoint, c.healthEndpoint)
+		if err != nil {
+			return err
+		}
+		return httpcore.PingHealth(ctx, c.hc, healthURL)
 	}
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
