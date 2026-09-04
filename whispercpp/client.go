@@ -58,7 +58,7 @@ func NewClient(opts ...Option) *Client {
 	c := &Client{
 		endpoint: DefaultEndpoint,
 		model:    DefaultModel,
-		hc:       &http.Client{Timeout: DefaultTimeout},
+		hc:       httpcore.NewHTTPClient(DefaultTimeout),
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -82,7 +82,9 @@ func (c *Client) Ping(ctx context.Context) error {
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
 
-// Close releases idle connections.
+// Close releases the connections this client pooled. It is a no-op for
+// a caller-supplied http.Client whose transport is not an
+// *http.Transport -- that transport's lifecycle belongs to the caller.
 func (c *Client) Close() error {
 	if t, ok := c.hc.Transport.(*http.Transport); ok {
 		t.CloseIdleConnections()
