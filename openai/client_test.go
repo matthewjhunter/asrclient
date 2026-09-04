@@ -68,6 +68,31 @@ func TestClient_PingDelegatesToHEAD(t *testing.T) {
 	}
 }
 
+func TestClient_PingUsesHealthEndpointGET(t *testing.T) {
+	var sawMethod, sawPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sawMethod, sawPath = r.Method, r.URL.Path
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	c := NewClient("",
+		WithEndpoint(srv.URL+"/v1/audio/transcriptions"),
+		WithHealthEndpoint(srv.URL+"/health"),
+	)
+	defer c.Close()
+
+	if err := c.Ping(context.Background()); err != nil {
+		t.Fatalf("Ping: %v", err)
+	}
+	if sawMethod != http.MethodGet {
+		t.Errorf("method: got %q want GET", sawMethod)
+	}
+	if sawPath != "/health" {
+		t.Errorf("path: got %q want /health", sawPath)
+	}
+}
+
 func TestClient_TranscriberInterface(t *testing.T) {
 	var _ asrclient.Transcriber = NewClient("k")
 }

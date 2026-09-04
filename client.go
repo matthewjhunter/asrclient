@@ -22,6 +22,16 @@ type Transcriber interface {
 	// Ping probes the backend. A nil return means ready; a non-nil
 	// return means the backend is currently unable to service
 	// requests.
+	//
+	// How strongly "ready" is asserted depends on the implementation
+	// and its configuration. The HTTP backends (openai, whispercpp)
+	// default to a HEAD against the transcription endpoint and accept
+	// any reply, which asserts only that something is listening -- a
+	// server that answers 405 there, and would reject every
+	// transcription, still pings clean. Give them WithHealthEndpoint
+	// to probe a real health path with GET and require 2xx, which is
+	// what "ready" should mean. Callers that gate on Ping should
+	// configure it.
 	Ping(ctx context.Context) error
 
 	// Close releases any persistent resources (sockets, HTTP

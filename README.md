@@ -114,6 +114,28 @@ private deployments that accept anonymous traffic. TLS verification is
 on by default; `WithTLSInsecureSkipVerify()` is available for local-LAN
 testing only.
 
+### Health probes
+
+`Ping` defaults to a HEAD against the transcription endpoint and treats
+any reply as success. That asserts only that something is listening: a
+server which does not route HEAD on that path answers 405 -- and would
+reject every transcription you sent it -- yet still pings clean. Many
+also log that 405 as a server-side error on every probe, so a frequent
+poll floods their log.
+
+Point `Ping` at a real health endpoint instead. It then issues a GET and
+requires a 2xx, so a nil return means the service says it is ready:
+
+```go
+c := openai.NewClient("",
+    openai.WithEndpoint("http://host:13305/v1/audio/transcriptions"),
+    openai.WithHealthEndpoint("/api/v1/health")) // Lemonade Server
+```
+
+A path is resolved against the transcription endpoint's origin; pass an
+absolute URL to probe a different host. `whisper-server` uses
+`/health`. Anything that gates behavior on `Ping` should configure this.
+
 ### whisper.cpp
 
 ```go

@@ -29,6 +29,10 @@ type Client struct {
 	endpoint string
 	model    string
 	hc       *http.Client
+
+	// healthEndpoint is empty unless WithHealthEndpoint was used;
+	// empty means Ping falls back to a HEAD on endpoint.
+	healthEndpoint string
 }
 
 // Option configures a Client.
@@ -49,6 +53,23 @@ func WithTimeout(d time.Duration) Option {
 func WithHTTPClient(hc *http.Client) Option {
 	return func(c *Client) { c.hc = hc }
 }
+
+// WithHealthEndpoint points Ping at a dedicated health endpoint instead
+// of probing the transcription path.
+//
+// Pass a path -- "/api/v1/health" for Lemonade Server, "/health" for
+// whisper-server -- and it is resolved against the transcription
+// endpoint's origin. Pass an absolute URL to probe a different host.
+//
+// This changes what a successful Ping means. Unset, Ping issues a HEAD
+// to the transcription endpoint and counts any reply as success,
+// because that only claims something is listening: many servers do not
+// route HEAD on that path and answer 405, which is still proof of life
+// (and which they typically log as an error on every probe). Set, Ping
+// issues a GET and requires 2xx, so it asserts the service says it is
+// ready -- and stops writing an error line into the server's log every
+// time it is called.
+func WithHealthEndpoint(s string) Option { return func(c *Client) { c.healthEndpoint = s } }
 
 // NewClient constructs a Client. The default points at
 // http://127.0.0.1:8080/v1/audio/transcriptions; consumers that
@@ -77,8 +98,18 @@ func (c *Client) Transcribe(ctx context.Context, audio []byte, opts asrclient.Op
 	})
 }
 
-// Ping implements asrclient.Transcriber.
+// Ping implements asrclient.Transcriber. It probes the configured
+// health endpoint when one is set (GET, 2xx required) and otherwise
+// falls back to a HEAD against the transcription endpoint. See
+// WithHealthEndpoint for why the two differ in strictness.
 func (c *Client) Ping(ctx context.Context) error {
+	if c.healthEndpoint != "" {
+		healthURL, err := httpcore.ResolveHealthURL(c.endpoint, c.healthEndpoint)
+		if err != nil {
+			return err
+		}
+		return httpcore.PingHealth(ctx, c.hc, healthURL)
+	}
 	return httpcore.PingHEAD(ctx, c.hc, c.endpoint)
 }
 
